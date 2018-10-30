@@ -119,6 +119,11 @@ def dialog_turns_to_string(dialog):
     # join turns
     return "".join(map(lambda x : x + " " + end_of_turn_symbol + " ", turns_as_strings))
 
+
+#Função que criar um contexto aleatoriamente
+#dialog é uma lista contendo toda a sessão de conversa
+#rng objeto utilizado para realizar gerar números aleatórios
+#recebe também o tamanho máximo e mínimo de um contexto
 def create_random_context(dialog,rng,minimum_context_length=2,max_context_length=20):
     """
     Samples random context from a dialog. Contexts are uniformly sampled from the whole dialog.
@@ -129,35 +134,36 @@ def create_random_context(dialog,rng,minimum_context_length=2,max_context_length
     # sample dialog context
     #context_turns = rng.randint(minimum_context_length,len(dialog)-1)
 
+    num = 2
 
-    '''
     max_len = min(max_context_length, len(dialog)) - 2
-    print('Criando o contexto aleatoriamente...')
-    print('max_context_length', max_context_length)
-    print('tamanho do diálogo', len(dialog))
-    print('max_len', max_len)
-    print('max_len é menor ou igual ao minimun_context_length?', max_len, minimum_context_length)
-    if max_len <= minimum_context_length:
+
+    if max_len <= minimum_context_length: #caso que o diálogo é menor ou igual 1 turno
         context_turns = max_len
+        dialog = dialog[:context_turns]
         print('sim, então context_turns recebe max_len')
     else:
         context_turns = rng.randint(minimum_context_length,max_len)
+        dialog = dialog[:context_turns] #corta o diálogo a partir da posição sorteada
+        print('context_turns', context_turns)
+        print('ANTES', dialog)
+        dialog = dialog[-num:] #pega os últimos n turnos
+        print('DEPOIS', dialog)
         print('não, então context_turns recebe um número aleatório entre o minimum_context_length e o max_len')
         #a <= N <= b
 
     # create string
-    #retorna o contexto e a próxima resposta
-    '''
-    return dialog_turns_to_string(dialog[:context_turns]),context_turns
+    #retorna o contexto e a posição da próxima resposta
+    return dialog_turns_to_string(dialog),context_turns
 
 
-#cria um único exemplo de treino
+
+#essa função cria um único exemplo de treino
 #context_diolog_path é o caminho do tsv que contém uma sessão de diálogo completa
 #cadidate_dialog_paths contém o caminho de todos os tsv's 
 #rng é um objeto do tipo random, que retorna um número aleatório no intervalo [0,1]
 #positive_probability é probabilidade de exemplo positivo, ie. a proporção de exemplos positivos para total no conjunto de treinamento (padrão = 0,5)
 #minimum_context_length=2,max_context_length=20 são os tamanhos mínimo e máximo do contexto
-
 def create_single_dialog_train_example(context_dialog_path, candidate_dialog_paths, rng, positive_probability,
                                        minimum_context_length=2,max_context_length=20):
     """
