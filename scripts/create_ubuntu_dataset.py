@@ -133,86 +133,14 @@ def create_random_context(dialog,rng,minimum_context_length=2,max_context_length
     """
     # sample dialog context
     #context_turns = rng.randint(minimum_context_length,len(dialog)-1)
-
-    num = num * 2 #para calcula quantidade de turnos, por exemplo se vc quer contextos com 2 turnos
-    # 2 * 2 = 4, logo devemos pegar as últimas 4 _eot_
-    #Um turno é uma entrada de texto (composta por uma ou mais utterances) acompanhada de uma resposta (composta por uma ou mais utterances)
-
     max_len = min(max_context_length, len(dialog)) - 2
-
-    if max_len <= minimum_context_length: #caso que o diálogo é menor ou igual 1 turno
-        #aqui temos um puta problema pois não queremos que contextos com turnos menores do que pedimos estejam poluindo o conjunto de dados
-        #isso precisa ser tratado, com base na quantidade de turnos passada
-        #se o diálogo for menor do que a quantidade de turnos, logo precisamos pegar outro diálogo
-        #isso requer chamar a função responsável por recuperar uma sessão de diálogos
-        #porém não somente isso, será necessário fazer modificações na função create_single_dialog_train_example
-        #pois ela quem recebe primeiramente um diálogo e passa para essa função
+    if max_len <= minimum_context_length:
         context_turns = max_len
-        dialog = dialog[:context_turns]
-        print('sim, então context_turns recebe max_len')
     else:
         context_turns = rng.randint(minimum_context_length,max_len)
-        dialog = dialog[:context_turns] #corta o diálogo a partir da posição sorteada
-        print('context_turns', context_turns)
-        print('ANTES', dialog)
-        dialog = dialog[-num:] #pega os últimos n turnos
-        print('DEPOIS', dialog)
-        print('não, então context_turns recebe um número aleatório entre o minimum_context_length e o max_len')
-        #a <= N <= b
 
     # create string
-    #retorna o contexto e a posição da próxima resposta
-    return dialog_turns_to_string(dialog),context_turns
-
-
-
-#essa função cria um único exemplo de treino
-#context_diolog_path é o caminho do tsv que contém uma sessão de diálogo completa
-#cadidate_dialog_paths contém o caminho de todos os tsv's 
-#rng é um objeto do tipo random, que retorna um número aleatório no intervalo [0,1]
-#positive_probability é probabilidade de exemplo positivo, ie. a proporção de exemplos positivos para total no conjunto de treinamento (padrão = 0,5)
-#minimum_context_length=2,max_context_length=20 são os tamanhos mínimo e máximo do contexto
-def create_single_dialog_train_example(context_dialog_path, candidate_dialog_paths, rng, positive_probability, num,
-                                       minimum_context_length=2,max_context_length=20):
-    """
-    Creates a single example for training set.
-    :param context_dialog_path:
-    :param candidate_dialog_paths:
-    :param rng:
-    :param positive_probability:
-    :return:
-    """
-
-    dialog = translate_dialog_to_lists(context_dialog_path)
-    print('context_dialog_path: ',context_dialog_path)
-    print('rng: ', rng)
-    print('dialog', dialog)
-    print('positive_probality: ', positive_probability)
-
-    context_str, next_utterance_ix = create_random_context(dialog, rng,
-                                                           minimum_context_length=minimum_context_length,
-                                                           max_context_length=max_context_length, num=num)
-    
-    print('context_str', context_str)
-    print('next_utterance_ix', next_utterance_ix)
-
-    if positive_probability > rng.random():
-        # use the next utterance as positive example
-        response = singe_user_utterances_to_string(dialog[next_utterance_ix])
-        label = 1.0
-        print('label', label)
-    else:
-        response = get_random_utterances_from_corpus(candidate_dialog_paths,rng,1,
-                                                     min_turn=minimum_context_length+1,
-                                                     max_turn=max_context_length)[0]
-        label = 0.0
-        print('label', label)
-
-    print('context', context_str)
-    print('response', response)
-    print('label', label)
-    return context_str, response, label
-
+    return dialog_turns_to_string(dialog[:context_turns]),context_turns
 
 def create_single_dialog_test_example(context_dialog_path, candidate_dialog_paths, rng, distractors_num, max_context_length, num):
     """
@@ -234,27 +162,8 @@ def create_single_dialog_test_example(context_dialog_path, candidate_dialog_path
     negative_responses = get_random_utterances_from_corpus(candidate_dialog_paths,rng,distractors_num)
     return context_str, positive_response, negative_responses
 
-
-def create_examples_train(candidate_dialog_paths, rng, positive_probability=0.5, max_context_length=20, num=1):
-    """
-    Creates single training example.
-    :param candidate_dialog_paths:
-    :param rng:
-    :param positive_probability: probability of selecting positive training example
-    :return:
-    """
-    i = 0
-    examples = []
-    for context_dialog in candidate_dialog_paths:
-        if i % 1000 == 0:
-            print str(i)
-        dialog_path = candidate_dialog_paths[i]
-        examples.append(create_single_dialog_train_example(dialog_path, candidate_dialog_paths, rng, positive_probability, num,
-                                                           max_context_length=max_context_length))
-        i+=1
-    #return map(lambda dialog_path : create_single_dialog_train_example(dialog_path, candidate_dialog_paths, rng, positive_probability), candidate_dialog_paths)
-
-def create_examples(candidate_dialog_paths, examples_num, creator_function):
+#função que cria exemplos de de treino com base no número de turnos desejado
+def create_examples_train(candidate_dialog_paths, examples_num, rng, positive_probability, num, minimum_context_length=2,max_context_length=20):
     """
     Creates a list of training examples from a list of dialogs and function that transforms a dialog to an example.
     :param candidate_dialog_paths:
@@ -262,19 +171,65 @@ def create_examples(candidate_dialog_paths, examples_num, creator_function):
     :return:
     """
     i = 0
+    x = 0
+    dialogOriginal = ''
     examples = []
     unique_dialogs_num = len(candidate_dialog_paths)
-
+    num = num * 2 #para calcula quantidade de turnos, por exemplo se vc quer contextos com 2 turnos
     while i < examples_num:
-        context_dialog = candidate_dialog_paths[i % unique_dialogs_num]
-        # counter for tracking progress
+        context_dialog = candidate_dialog_paths[x % unique_dialogs_num]
+        # 2 * 2 = 4, logo devemos pegar as últimas 4 _eot_
+        #Um turno é uma entrada de texto (composta por uma ou mais utterances) acompanhada de uma resposta (composta por uma ou mais utterances)
+        dialogOriginal = translate_dialog_to_lists(context_dialog)
+        max_len = min(max_context_length, len(dialogOriginal)) - 2
+
+        if max_len <= minimum_context_length: #caso que o diálogo é menor ou igual 1 turno
+            if max_len < num:
+                while(max_len < num):
+                    x += 1
+                    context_dialog = candidate_dialog_paths[x % unique_dialogs_num]
+                    dialogOriginal = translate_dialog_to_lists(context_dialog)
+                    max_len = min(max_context_length, len(dialogOriginal)) - 2
+                  #  print('while', max_len, num)
+                context_turns = rng.randint(minimum_context_length,max_len)
+                if context_turns < num:
+                    context_turns = context_turns + (num-context_turns)
+                dialog = dialogOriginal[:context_turns] #corta o diálogo a partir da posição sorteada
+                dialog = dialog[-num:] #pega os últimos n turnos
+            else:
+                context_turns = max_len
+                dialog = dialogOriginal[:context_turns]
+        else:
+            context_turns = rng.randint(minimum_context_length,max_len)
+            if context_turns < num:
+                context_turns = context_turns + (abs(context_turns-num))
+            dialog = dialogOriginal[:context_turns] #corta o diálogo a partir da posição sorteada
+            dialog = dialog[-num:] #pega os últimos n turnos
+
+        context_str = dialog_turns_to_string(dialog)
+        next_utterance_ix = context_turns
+
+        if positive_probability > rng.random():
+            # use the next utterance as positive example
+            response = singe_user_utterances_to_string(dialogOriginal[next_utterance_ix])
+            label = 1.0
+            #print('label', label)
+        else:
+            response = get_random_utterances_from_corpus(candidate_dialog_paths,rng,1,
+                                                     min_turn=minimum_context_length+1,
+                                                     max_turn=max_context_length)[0]
+            label = 0.0
+            #print('label', label)
         if i % 1000 == 0:
             print str(i)
         i+=1
-
-        examples.append(creator_function(context_dialog, candidate_dialog_paths))
+        x += 1
+        
+        result = [context_str, response , label]
+        examples.append(result)
 
     return examples
+
 
 def convert_csv_with_dialog_paths(csv_file):
     """
@@ -368,11 +323,7 @@ if __name__ == '__main__':
         f = open(os.path.join("meta", "trainfiles.csv"), 'r')
         dialog_paths = map(lambda path: os.path.join(args.data_root, "dialogs", path), convert_csv_with_dialog_paths(f))
 
-        train_set = create_examples(dialog_paths,
-                                    args.e,
-                                    lambda context_dialog, candidates :
-                                    create_single_dialog_train_example(context_dialog, candidates, rng,
-                                                                       args.p,  args.turn, max_context_length=args.max_context_length))
+        train_set = create_examples_train(dialog_paths,args.e, rng, args.p,  args.turn, max_context_length=args.max_context_length)
 
         stemmer = SnowballStemmer("english")
         lemmatizer = WordNetLemmatizer()
@@ -434,7 +385,7 @@ if __name__ == '__main__':
 
     parser_train = subparsers.add_parser('train', help='trainset generator')
     parser_train.add_argument('-p', type=float, default=0.5, help='positive example probability')
-    parser_train.add_argument('-e', type=int, default=10000, help='number of examples to generate')
+    parser_train.add_argument('-e', type=int, default=1000000, help='number of examples to generate')
     parser_train.add_argument('-t', '--turn', type=int, default=1, help='number of turns per examples to generate')
     parser_train.set_defaults(func=train_cmd)
 
