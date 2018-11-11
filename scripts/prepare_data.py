@@ -12,12 +12,12 @@ tf.flags.DEFINE_integer(
 tf.flags.DEFINE_integer("max_sentence_len", 160, "Maximum Sentence Length")
 
 tf.flags.DEFINE_string(
-  "input_dir", os.path.abspath("./data"),
-  "Input directory containing original CSV data files (default = './data')")
+  "input_dir", os.path.abspath("../data"),
+  "Input directory containing original CSV data files (default = '../data')")
 
 tf.flags.DEFINE_string(
-  "output_dir", os.path.abspath("./"),
-  "Output directory for TFrEcord files (default = './data')")
+  "output_dir", os.path.abspath("../data"),
+  "Output directory for TFrEcord files (default = '../data')")
 
 FLAGS = tf.flags.FLAGS
 
