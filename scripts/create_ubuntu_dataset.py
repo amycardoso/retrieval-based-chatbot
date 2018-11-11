@@ -162,7 +162,8 @@ def create_single_dialog_test_example(context_dialog_path, candidate_dialog_path
     negative_responses = get_random_utterances_from_corpus(candidate_dialog_paths,rng,distractors_num)
     return context_str, positive_response, negative_responses
 
-#função que cria exemplos de de treino com base no número de turnos desejado
+#função que cria exemplos de treino com base no número de turnos desejado
+#unificação de três funções (create_random_context, create_single_dialog_train_example e create_examples) do código original, mais algumas modificações
 def create_examples_train(candidate_dialog_paths, examples_num, rng, positive_probability, num, minimum_context_length=2,max_context_length=20):
     """
     Creates a list of training examples from a list of dialogs and function that transforms a dialog to an example.
@@ -176,54 +177,36 @@ def create_examples_train(candidate_dialog_paths, examples_num, rng, positive_pr
     examples = []
     unique_dialogs_num = len(candidate_dialog_paths)
     num = num * 2 #para calcula quantidade de turnos, por exemplo se vc quer contextos com 2 turnos
+    # 2 * 2 = 4, logo devemos pegar as últimas 4 _eot_
+    #Um turno é uma entrada de texto (composta por uma ou mais utterances) acompanhada de uma resposta (composta por uma ou mais utterances)
     while i < examples_num:
-        context_dialog = candidate_dialog_paths[x % unique_dialogs_num]
-        # 2 * 2 = 4, logo devemos pegar as últimas 4 _eot_
-        #Um turno é uma entrada de texto (composta por uma ou mais utterances) acompanhada de uma resposta (composta por uma ou mais utterances)
-        dialogOriginal = translate_dialog_to_lists(context_dialog)
-        max_len = min(max_context_length, len(dialogOriginal)) - 2
+        while True: #seleciona diálogos cujo tamanho sejam >= ao número de turnos desejado
+            context_dialog = candidate_dialog_paths[x % unique_dialogs_num] #o resto da divisão é o diálogo selecionado de uma lista de 898142 diálogos
+            dialogOriginal = translate_dialog_to_lists(context_dialog) #traduz o diálogo para uma lista
+            max_len = min(max_context_length, len(dialogOriginal)) - 2 #pega sempre o menor, para evitar que o contexto tenha tamanho maior que 18
+            x += 1
+            if max_len >= num: #se encontrou um diálogo >= ao número de turnos, break
+                break
 
-        if max_len <= minimum_context_length: #caso que o diálogo é menor ou igual 1 turno
-            if max_len < num:
-                while(max_len < num):
-                    x += 1
-                    context_dialog = candidate_dialog_paths[x % unique_dialogs_num]
-                    dialogOriginal = translate_dialog_to_lists(context_dialog)
-                    max_len = min(max_context_length, len(dialogOriginal)) - 2
-                  #  print('while', max_len, num)
-                context_turns = rng.randint(minimum_context_length,max_len)
-                if context_turns < num:
-                    context_turns = context_turns + (num-context_turns)
-                dialog = dialogOriginal[:context_turns] #corta o diálogo a partir da posição sorteada
-                dialog = dialog[-num:] #pega os últimos n turnos
-            else:
-                context_turns = max_len
-                dialog = dialogOriginal[:context_turns]
-        else:
-            context_turns = rng.randint(minimum_context_length,max_len)
-            if context_turns < num:
-                context_turns = context_turns + (abs(context_turns-num))
-            dialog = dialogOriginal[:context_turns] #corta o diálogo a partir da posição sorteada
-            dialog = dialog[-num:] #pega os últimos n turnos
+        context_turns = rng.randint(num,max_len) #gera um número aleatório entre os dois valores
+        dialog = dialogOriginal[:context_turns] #corta o diálogo a partir da posição sorteada
+        dialog = dialog[-num:] #pega os últimos n turnos
 
-        context_str = dialog_turns_to_string(dialog)
-        next_utterance_ix = context_turns
+        context_str = dialog_turns_to_string(dialog) #Transforma o diálogo para string
+        next_utterance_ix = context_turns #a próxima utterence que será usada como resposta ao contexto
 
         if positive_probability > rng.random():
             # use the next utterance as positive example
             response = singe_user_utterances_to_string(dialogOriginal[next_utterance_ix])
             label = 1.0
-            #print('label', label)
         else:
             response = get_random_utterances_from_corpus(candidate_dialog_paths,rng,1,
                                                      min_turn=minimum_context_length+1,
                                                      max_turn=max_context_length)[0]
             label = 0.0
-            #print('label', label)
         if i % 1000 == 0:
             print str(i)
         i+=1
-        x += 1
         
         result = [context_str, response , label]
         examples.append(result)
@@ -323,6 +306,7 @@ if __name__ == '__main__':
         f = open(os.path.join("meta", "trainfiles.csv"), 'r')
         dialog_paths = map(lambda path: os.path.join(args.data_root, "dialogs", path), convert_csv_with_dialog_paths(f))
 
+        #chama a função que cria os exemplos de treino
         train_set = create_examples_train(dialog_paths,args.e, rng, args.p,  args.turn, max_context_length=args.max_context_length)
 
         stemmer = SnowballStemmer("english")
