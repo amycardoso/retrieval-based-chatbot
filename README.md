@@ -18,7 +18,7 @@ Os códigos utilizam Python 3. Clone o repositório e instale todos os pacotes n
 ### Base de diálogos
 
 
-Os experimentos foram realizados utilizando o Ubuntu Dialogue Corpus versão 2.0 apresentado no *paper* [Training End-to-End Dialogue Systems with the Ubuntu Dialogue Corpus](http://www.cs.toronto.edu/~lcharlin/papers/ubuntu_dialogue_dd17.pdf). Cujo script de geração está disponível neste [repositório](https://github.com/rkadlec/ubuntu-ranking-dataset-creator). 
+Os experimentos foram realizados utilizando o Ubuntu Dialogue Corpus versão 2.0 apresentado no *paper* [Training End-to-End Dialogue Systems with the Ubuntu Dialogue Corpus](http://www.cs.toronto.edu/~lcharlin/papers/ubuntu_dialogue_dd17.pdf), cujo script de geração está disponível neste [repositório](https://github.com/rkadlec/ubuntu-ranking-dataset-creator). 
 Entretanto, como o objetivo da pesquisa era entender o impacto do tamanho do *context* na previsão da próxima *utterance*, tornou-se necessário a modificação do script de geração para obter conjuntos de treinamento com a quantidade de turnos que fosse informada por argumento. Desta forma, o script modificado encontra-se na pasta scripts com nome [create_ubuntu_dataset_modificado.py](https://github.com/amycardoso/retrieval-based-chatbot/blob/master/scripts/create_ubuntu_dataset_modificado.py).
 
 #### Geração do conjunto de treino com *script* modificado
@@ -31,7 +31,7 @@ Para geração dos conjuntos de treinamento siga os passos descritos neste [repo
 
 Exemplo para geração de um conjunto composto de *contexts* com 2 turnos:
 ```
-python2 create_ubuntu_dataset_modificado.py --data_root ./dados -o 'train.csv' -t -s -l train -t 4
+python2 create_ubuntu_dataset_modificado.py --data_root ./dados -o 'train.csv' -t -s -l train -t 2
 ```
 Execute a geração dos conjuntos de treino com o *script* modificado e para os conjuntos de validação e teste utilize o *script* original, ou faça download de todos os conjuntos necessários [aqui](https://drive.google.com/open?id=1--1LbkFMUIx6J3hqHFMrVtdPTkp5K9FY). Por fim, mova todos para a pasta `./data`.
 
