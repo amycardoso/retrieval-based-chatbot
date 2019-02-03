@@ -14,8 +14,8 @@ tf.flags.DEFINE_integer("max_context_len", 160, "Truncate contexts to this lengt
 tf.flags.DEFINE_integer("max_utterance_len", 80, "Truncate utterance to this length")
 
 # Pre-trained embeddings
-tf.flags.DEFINE_string("glove_path", None, "Path to pre-trained Glove vectors")
-tf.flags.DEFINE_string("vocab_path", None, "Path to vocabulary.txt file")
+tf.flags.DEFINE_string("glove_path", "./data/glove.6B.100d.txt", "Path to pre-trained Glove vectors")
+tf.flags.DEFINE_string("vocab_path", "./data/vocabulary.txt", "Path to vocabulary.txt file")
 
 # Training Parameters
 tf.flags.DEFINE_float("learning_rate", 0.001, "Learning rate")

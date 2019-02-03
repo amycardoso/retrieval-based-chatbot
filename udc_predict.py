@@ -36,7 +36,7 @@ vp = tf.contrib.learn.preprocessing.VocabularyProcessor.restore(
 #POTENTIAL_RESPONSES = ["Response 1", "Response 2"]
 
 test_df = pd.read_csv("./data/test.csv")
-elementId = 2
+elementId = 79
 INPUT_CONTEXT = test_df.Context[elementId]
 POTENTIAL_RESPONSES = test_df.iloc[elementId,1:].values
 
