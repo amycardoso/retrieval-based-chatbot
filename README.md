@@ -58,8 +58,6 @@ python3 udc_test.py --model_dir=...
 **Exemplo:**
 ```
 python3 udc_test.py --model_dir=./runs/1481183770/
-or------------------
-sh predict.sh
 ```
 
 #### Predição
