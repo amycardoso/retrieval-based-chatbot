@@ -8,7 +8,7 @@ Some of the codes used here were produced in this [hands-on](http://www.wildml.c
 ### Configuration
 
 The codes use Python 2 and 3. Clone the repository and install all necessary packages:
-> ** Note: ** Only database generation scripts use Python2.
+> Note:  Only database generation scripts use Python2.
 ```
 1. install tensorflow (version 0.11 and above work correctly, version 0.10 not tested)
 2. (optional) install cuda + cudnn (recommend for gpu support)
