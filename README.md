@@ -34,7 +34,7 @@ Example for generating a set consisting of contexts with 2 turns:
 ```
 python2 create_ubuntu_dataset_modificado.py --data_root ./dados -o 'train.csv' -t -s -l train -t 2
 ```
-Run training set generation with the modified script, but for validation and test sets use the original script, or download all required sets [here](https://drive.google.com/open?id=1-1LbkFMUIx6J3hqHFMrVtdPTkp5K9FY "here"). Finally, move all files to the `./Data` folder.
+Run training set generation with the modified script, but for validation and test sets use the original script, or download all required sets [here](https://drive.google.com/open?id=1--1LbkFMUIx6J3hqHFMrVtdPTkp5K9FY "here"). Finally, move all files to the `./Data` folder.
 
 #### Preprocessing
 Before moving to Deep Learning model training, sets need to be transformed from CSV to TFRecord.
