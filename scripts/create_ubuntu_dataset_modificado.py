@@ -19,6 +19,11 @@ LICENSE: Apache License 2.0  URL: ttp://www.apache.org/licenses/LICENSE-2.0
 Contact: Rudolf Kadlec (rudolf_kadlec@cz.ibm.com)
 """
 
+"""
+Modifications copyright (C) 2018 Amélia Alice
+LICENSE: MIT License
+Contact: Amélia Alice (ameliaalicec@gmail.com)
+"""
 dialog_end_symbol = "__dialog_end__"
 end_of_utterance_symbol = "__eou__"
 end_of_turn_symbol = "__eot__"
