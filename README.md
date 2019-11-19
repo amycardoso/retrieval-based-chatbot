@@ -1,5 +1,9 @@
 
 ## Analysis Of The Context Size Impact In Deep Learning Conversational Systems
+[![GitHub license](https://img.shields.io/github/license/amycardoso/retrieval-based-chatbot)](https://github.com/amycardoso/retrieval-based-chatbot/blob/master/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/amycardoso/retrieval-based-chatbot)](https://github.com/amycardoso/retrieval-based-chatbot/stargazers)
+![GitHub top language](https://img.shields.io/github/languages/top/amycardoso/retrieval-based-chatbot)
+
 This repository holds an implementation of the Deep Learning Dual Encoder LSTM Model and the Vector Space Model, both used to evaluate and analyze the impact of the context size over the quality of responses.
 [![chatbot](https://blog-assets.freshworks.com/freshdesk/wp-content/uploads/2018/08/Header_gif_assembly-1.gif "chatbot")](https://blog-assets.freshworks.com/freshdesk/wp-content/uploads/2018/08/Header_gif_assembly-1.gif "chatbot")
 ### Overview
