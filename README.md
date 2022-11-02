@@ -11,13 +11,12 @@ Some of the codes used here were produced in this [hands-on](http://www.wildml.c
 
 ### Configuration
 
-The codes use Python 2 and 3. Clone the repository and install all necessary packages:
-> Note:  Only database generation scripts use Python2.
+The codes use Python 3. Clone the repository and install all necessary packages:
 ```
 1. install tensorflow (version 0.11 and above work correctly, version 0.10 not tested)
 2. (optional) install cuda + cudnn (recommend for gpu support)
-2. pip3 install -U pip
-3. pip3 install -r requirements.txt
+2. pip install -U pip
+3. pip install -r requirements.txt
 ```
 
 ### Dialogue dataset
@@ -36,7 +35,7 @@ For the generation of training sets, follow the steps described in this [reposit
 
 Example for generating a set consisting of contexts with 2 turns:
 ```
-python2 create_ubuntu_dataset_modificado.py --data_root ./dados -o 'train.csv' -t -s -l train -t 2
+python create_ubuntu_dataset_modificado.py --data_root ./dados -o 'train.csv' -t -s -l train -t 2
 ```
 Run training set generation with the modified script, but for validation and test sets use the original script, or download all required sets [here](https://drive.google.com/open?id=1--1LbkFMUIx6J3hqHFMrVtdPTkp5K9FY "here"). Finally, move all files to the `./Data` folder.
 
@@ -44,36 +43,36 @@ Run training set generation with the modified script, but for validation and tes
 Before moving to Deep Learning model training, sets need to be transformed from CSV to TFRecord.
 ```
 cd scripts
-python3 prepare-data.py
+python prepare-data.py
 ```
 ### Dual Encoder LSTM Model
 #### Training
 
 ```
-python3 udc_train.py
+python udc_train.py
 ```
 
 #### Evaluation
 
 ```
-python3 udc_test.py --model_dir=...
+python udc_test.py --model_dir=...
 ```
 
 
 **Example:**
 ```
-python3 udc_test.py --model_dir=./runs/1481183770/
+python udc_test.py --model_dir=./runs/1481183770/
 ```
 
 #### Prediction
 
 ```
-python3 udc_predict.py --model_dir=...
+python udc_predict.py --model_dir=...
 ```
 
 **Example:**
 ```
-python3 udc_predict.py --model_dir=./runs/1481183770/
+python udc_predict.py --model_dir=./runs/1481183770/
 ```
 
 ### Vector Space Model
