@@ -6,6 +6,7 @@ import random
 from six.moves import urllib
 import tarfile
 import csv
+from pathlib import Path
 
 import nltk
 from nltk.stem import SnowballStemmer, WordNetLemmatizer
@@ -303,7 +304,7 @@ if __name__ == '__main__':
         rng = random.Random(args.seed)
         # training dataset
 
-        f = open(os.path.join("meta", "trainfiles.csv"), 'r')
+        f = open(Path(os.path.join("meta", "trainfiles.csv")))
         dialog_paths = [os.path.join(args.data_root, "dialogs", path) for path in convert_csv_with_dialog_paths(f)]
 
         train_set = create_examples_train(dialog_paths,args.e, rng, args.p,  args.turn, max_context_length=args.max_context_length)
