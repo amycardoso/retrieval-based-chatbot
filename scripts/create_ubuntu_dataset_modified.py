@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import argparse
 import os
-import unicodecsv
 import random
 from six.moves import urllib
 import tarfile
-import csv
 from pathlib import Path
+import csv
 
 import nltk
 from nltk.stem import SnowballStemmer, WordNetLemmatizer
@@ -37,9 +36,6 @@ def translate_dialog_to_lists(dialog_filename):
     :return:
     """
 
-    dialog_file = open(dialog_filename, 'r')
-    dialog_reader = unicodecsv.reader(dialog_file, delimiter='\t',quoting=csv.QUOTE_NONE)
-
     # go through the dialog
     first_turn = True
     dialog = []
@@ -47,23 +43,22 @@ def translate_dialog_to_lists(dialog_filename):
     #last_user = None
     dialog.append(same_user_utterances)
 
-    for dialog_line in dialog_reader:
+    with open(dialog_filename, encoding='UTF8') as csvfile:
+        dialog_reader = csv.reader(csvfile, delimiter='\t', quotechar=None)
+        for dialog_line in dialog_reader:
+            if first_turn:
+                last_user = dialog_line[1]
+                first_turn = False
 
-        if first_turn:
+            if last_user != dialog_line[1]:
+                # user has changed
+                same_user_utterances = []
+                dialog.append(same_user_utterances)
+
+            same_user_utterances.append(dialog_line[3])
             last_user = dialog_line[1]
-            first_turn = False
-
-        if last_user != dialog_line[1]:
-            # user has changed
-            same_user_utterances = []
-            dialog.append(same_user_utterances)
-
-        same_user_utterances.append(dialog_line[3])
-
-        last_user = dialog_line[1]
 
     dialog.append([dialog_end_symbol])
-
     return dialog
 
 
@@ -273,36 +268,34 @@ if __name__ == '__main__':
                                    lambda context_dialog, candidates : create_single_dialog_test_example(context_dialog, candidates, rng,
                                                                      args.n, args.max_context_length, args.turn))
         # output the dataset
-        w = unicodecsv.writer(open(args.output, 'w'), encoding='utf-8')
-        # header
-        header = ["Context", "Ground Truth Utterance"]
-        header.extend(["Distractor_{}".format(x) for x in range(args.n)])
-        w.writerow(header)
+        with open(args.output, 'w', encoding='UTF8') as f:
+            w = csv.writer(f)
+            header = ["Context", "Ground Truth Utterance"]
+            header.extend(["Distractor_{}".format(x) for x in range(args.n)])
+            w.writerow(header)
 
-        stemmer = SnowballStemmer("english")
-        lemmatizer = WordNetLemmatizer()
+            stemmer = SnowballStemmer("english")
+            lemmatizer = WordNetLemmatizer()
 
-        for row in data_set:
-            translated_row = [row[0], row[1]]
-            translated_row.extend(row[2])
-            
-            if args.tokenize:
-                translated_row = list(map(nltk.word_tokenize, translated_row))
-                if args.stem:
-                    translated_row = [list(map(stemmer.stem, sub)) for sub in translated_row]
-                if args.lemmatize:
-                    translated_row = [[lemmatizer.lemmatize(tok, pos='v') for tok in sub] for sub in translated_row]
-                    
-                translated_row = [" ".join(x) for x in translated_row]
+            for row in data_set:
+                translated_row = [row[0], row[1]]
+                translated_row.extend(row[2])
+                
+                if args.tokenize:
+                    translated_row = list(map(nltk.word_tokenize, translated_row))
+                    if args.stem:
+                        translated_row = [list(map(stemmer.stem, sub)) for sub in translated_row]
+                    if args.lemmatize:
+                        translated_row = [[lemmatizer.lemmatize(tok, pos='v') for tok in sub] for sub in translated_row]
+                        
+                    translated_row = [" ".join(x) for x in translated_row]
 
-            w.writerow(translated_row)
+                w.writerow(translated_row)
         print(("Dataset stored in: {}".format(args.output)))
 
 
     def train_cmd(args):
-
         rng = random.Random(args.seed)
-        # training dataset
 
         f = open(Path(os.path.join("meta", "trainfiles.csv")))
         dialog_paths = [os.path.join(args.data_root, "dialogs", path) for path in convert_csv_with_dialog_paths(f)]
@@ -313,24 +306,24 @@ if __name__ == '__main__':
         lemmatizer = WordNetLemmatizer()
 
         # output the dataset
-        w = unicodecsv.writer(open(args.output, 'w'), encoding='utf-8')
-        # header
-        w.writerow(["Context", "Utterance", "Label"])
-        for row in train_set:
-            translated_row = row
+        with open(args.output, 'w', encoding='UTF8') as f:
+            w = csv.writer(f)
+            w.writerow(["Context", "Utterance", "Label"])
+            for row in train_set:
+                translated_row = row
 
-            if args.tokenize:
-                translated_row = [nltk.word_tokenize(row[i]) for i in [0,1]]
+                if args.tokenize:
+                    translated_row = [nltk.word_tokenize(row[i]) for i in [0,1]]
 
-                if args.stem:
-                    translated_row = [list(map(stemmer.stem, sub)) for sub in translated_row]
-                if args.lemmatize:
-                    translated_row = [[lemmatizer.lemmatize(tok, pos='v') for tok in sub] for sub in translated_row]
+                    if args.stem:
+                        translated_row = [list(map(stemmer.stem, sub)) for sub in translated_row]
+                    if args.lemmatize:
+                        translated_row = [[lemmatizer.lemmatize(tok, pos='v') for tok in sub] for sub in translated_row]
 
-                translated_row = [" ".join(x) for x in translated_row]
-                translated_row.append(int(float(row[2])))
+                    translated_row = [" ".join(x) for x in translated_row]
+                    translated_row.append(int(float(row[2])))
 
-            w.writerow(translated_row)
+                w.writerow(translated_row)
         print(("Train dataset stored in: {}".format(args.output)))
 
     def valid_cmd(args):
